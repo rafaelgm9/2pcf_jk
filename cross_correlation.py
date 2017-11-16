@@ -1,7 +1,6 @@
 import numpy as np
 import Corrfunc
 import math
-import gc
 
 
 def partition(data, boxsize, gridsize):
@@ -40,7 +39,7 @@ def DD_jk(d1, d2, d1_id, d2_id, boxsize, gridsize, minsep, maxsep, nbins, nthrea
     for i1, j1, k1 in [(i1, j1, k1) for i1 in range(Nperdim) for j1 in range(Nperdim) for k1 in range(Nperdim)]:
 
         # Get box index
-        print(i1, j1, k1)
+        #print(i1, j1, k1)
         s1 = Nperdim ** 2 * i1 + Nperdim * j1 + k1
 
         # Get data1 box
@@ -98,7 +97,7 @@ def DD_jk(d1, d2, d1_id, d2_id, boxsize, gridsize, minsep, maxsep, nbins, nthrea
                     else:
                         ddpairs[s1][s2].append(zeros)
 
-                    gc.collect()
+                    #gc.collect()
 
     return ddpairs
 
@@ -210,6 +209,6 @@ def cross_tpcf_jk(d1, d2, boxsize, gridsize, minsep, maxsep, nbins, nthreads, jk
 
     # Return estimators
     if jk_estimates is True:
-        return meanxi_i, cov, xi, xi_i
+        return meanxi_i, cov, xi_i
     else:
         return meanxi_i, cov
