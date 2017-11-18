@@ -103,21 +103,28 @@ def DD_jk(d1, d2, d1_id, d2_id, boxsize, gridsize, minsep, maxsep, nbins, nthrea
 
 
 def DD_to_tpcf_jk(d1, d2, d1_id, d2_id, boxsize, gridsize, minsep, maxsep, nbins, ddpairs):
+
+    # Set up bins
+    bins = 10. ** np.linspace(np.log10(minsep), np.log10(maxsep), nbins + 1)
+
+    # Some quantities
+    Nperdim = int(math.ceil(boxsize / gridsize))                            # Number of cells per dimension
+    N = Nperdim**3                                                          # Number of jackknife samples
+    d1tot = np.size(d1, 0)                                                  # Number of objects in d1
+    d2tot = np.size(d2, 0)                                                  # Number of objects in d2
+    Vbox = boxsize ** 3                                                     # Volume of box
+    Vshell = np.zeros(nbins)                                                # Volume of spherical shell
+    for m in range(nbins):
+        Vshell[m] = 4. / 3. * np.pi * (bins[m + 1] ** 3 - bins[m] ** 3)
+    n2 = float(d2tot) / Vbox                                                # Number density of d2
+
     # Some arrays
-    # N is the number of jackknife samples
-    Nperdim = int(math.ceil(boxsize / gridsize))
-    N = Nperdim**3
     dd_pairs = np.zeros(nbins)
     dd_pairs_i = np.zeros((N, nbins))
     xi = np.zeros(nbins)
     xi_i = np.zeros((N, nbins))
     meanxi_i = np.zeros(nbins)
     cov = np.zeros((nbins, nbins))
-    d1tot = np.size(d1, 0)
-    d2tot = np.size(d2, 0)
-
-    # Set up bins
-    bins = 10. ** np.linspace(np.log10(minsep), np.log10(maxsep), nbins + 1)
 
     # Loop for every d1 box
     for i1, j1, k1 in [(i1, j1, k1) for i1 in range(Nperdim)
@@ -158,19 +165,12 @@ def DD_to_tpcf_jk(d1, d2, d1_id, d2_id, boxsize, gridsize, minsep, maxsep, nbins
                     # Sum pairs for xi over entire sample
                     dd_pairs = dd_pairs + ddpairs[s1][s2]
 
-    #
+    # Compute xi_i
     for s1 in range(N):
         # Sum pairs
         dd_pairs_i[s1] = dd_pairs_i[s1] + dd_pairs
         d1tot_s1 = np.size(d1, 0) - np.size(d1[d1_id[s1]], 0)
-
-        # Compute xi_i
-        Vbox = boxsize**3
-        Vshell = np.zeros(nbins)
         n1 = float(d1tot_s1) / Vbox
-        n2 = float(d2tot) / Vbox
-        for m in range(nbins):
-            Vshell[m] = 4./3. * np.pi * (bins[m+1]**3 - bins[m]**3)
         xi_i[s1] = dd_pairs_i[s1] / (n1 * n2 * Vbox * Vshell) - 1
 
     # Compute meanxi_i
@@ -181,13 +181,8 @@ def DD_to_tpcf_jk(d1, d2, d1_id, d2_id, boxsize, gridsize, minsep, maxsep, nbins
     cov = (float(N) - 1.) * np.cov(xi_i.T, bias=True)
 
     # Compute xi
-    Vbox = boxsize ** 3                                                     # Volumes
-    Vshell = np.zeros(nbins)
-    n1 = float(d1tot) / Vbox                                                # Densities
-    n2 = float(d2tot) / Vbox
-    for m in range(nbins):
-        Vshell[m] = 4. / 3. * np.pi * (bins[m + 1] ** 3 - bins[m] ** 3)     # Spherical shells
-    xi = dd_pairs / (n1 * n2 * Vbox * Vshell) - 1                           # CF
+    n1 = float(d1tot) / Vbox
+    xi = dd_pairs / (n1 * n2 * Vbox * Vshell) - 1
 
     return xi, xi_i, meanxi_i, cov
 
@@ -209,6 +204,27 @@ def cross_tpcf_jk(d1, d2, boxsize, gridsize, minsep, maxsep, nbins, nthreads, jk
 
     # Return estimators
     if jk_estimates is True:
-        return meanxi_i, cov, xi_i
+        return meanxi_i, cov, xi_i, xi
+    else:
+        return meanxi_i, cov
+
+
+def cross_tpcf_jk_fixed_d1(d1, d1_id, d2, boxsize, gridsize, minsep, maxsep, nbins, nthreads, jk_estimates = False):
+
+    # Partition boxes
+    print('Partition.')
+    d2_id = partition(d2, boxsize, gridsize)
+
+    # Pair counting
+    print('DD pair counting.')
+    ddpairs = DD_jk(d1, d2, d1_id, d2_id, boxsize, gridsize, minsep, maxsep, nbins, nthreads)
+
+    # Compute xi
+    print('Compute xi_hm.')
+    xi, xi_i, meanxi_i, cov = DD_to_tpcf_jk(d1, d2, d1_id, d2_id, boxsize, gridsize, minsep, maxsep, nbins, ddpairs)
+
+    # Return estimators
+    if jk_estimates is True:
+        return meanxi_i, cov, xi_i, xi
     else:
         return meanxi_i, cov
