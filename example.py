@@ -21,7 +21,8 @@ nthreads = 8            # Number of cpu threads
 # meanxi_i is the mean of xi_i
 # cov is covariance matrix
 # xi_i is the set of CFs measured in each JK sample. jk_estimates = True returns this array.
-meanxi_i, cov, xi_i = cross_correlation.cross_tpcf_jk(d1 = d1, d2 = d2, boxsize = L, gridsize = l,
+# xi is the true CF
+meanxi_i, cov, xi_i, xi = cross_correlation.cross_tpcf_jk(d1 = d1, d2 = d2, boxsize = L, gridsize = l,
                                                       minsep = minsep, maxsep = maxsep, nbins = nbins,
                                                       nthreads = nthreads, jk_estimates = True)
 
