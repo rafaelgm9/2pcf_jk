@@ -1,5 +1,6 @@
 import numpy as np
 import cross_correlation
+import auto_correlation
 import matplotlib.pyplot as plt
 from matplotlib import rcParams
 rcParams.update({'figure.autolayout': True})
@@ -22,9 +23,15 @@ nthreads = 8            # Number of cpu threads
 # cov is covariance matrix
 # xi_i is the set of CFs measured in each JK sample. jk_estimates = True returns this array.
 # xi is the true CF
-meanxi_i, cov, xi_i, xi = cross_correlation.cross_tpcf_jk(d1 = d1, d2 = d2, boxsize = L, gridsize = l,
-                                                      minsep = minsep, maxsep = maxsep, nbins = nbins,
-                                                      nthreads = nthreads, jk_estimates = True)
+meanxi_i, cov, xi_i, xi = cross_correlation.cross_tpcf_jk(d1=d1, d2=d2, boxsize=L, gridsize=l,
+                                                          minsep=minsep, maxsep=maxsep, nbins=nbins,
+                                                          nthreads=nthreads, jk_estimates=True)
+
+# For a halo-halo auto correlation:
+meanxi_i_hh, cov_hh, xi_i_hh, xi_hh = auto_correlation.auto_tpcf_jk(d1=d1, boxsize=L, gridsize=l,
+                                                                    minsep=minsep, maxsep=maxsep, nbins=nbins,
+                                                                    nthreads=nthreads, jk_estimates=True)
+
 
 # Let's plot!
 r = 10 ** np.linspace(np.log10(minsep), np.log10(maxsep), nbins+1)
