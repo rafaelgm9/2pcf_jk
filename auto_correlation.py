@@ -91,6 +91,11 @@ def auto_DD_jk(d1, d1_id, boxsize, gridsize, minsep, maxsep, nbins, nthreads):
 
                     # Data pair counting
                     if np.size(xd1) != 0 and np.size(xd2) != 0:
+                        # Condition for sparse catalogs
+                        if s1 == s2 and np.size(xd1) == 1:
+                            ddpairs[s1][s2].append(zeros)
+                            continue
+
                         # Periodic boundary conditions
                         xd2 += periodi * boxsize
                         yd2 += periodj * boxsize
