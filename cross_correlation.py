@@ -114,8 +114,10 @@ def DD_to_tpcf_jk(d1, d2, d1_id, d2_id, boxsize, gridsize, minsep, maxsep, nbins
     d2tot = np.size(d2, 0)                                                  # Number of objects in d2
     Vbox = boxsize ** 3                                                     # Volume of box
     Vshell = np.zeros(nbins)                                                # Volume of spherical shell
+    Vjk = (N - 1) / N * Vbox                                                # Volume of jackknife survey
     for m in range(nbins):
         Vshell[m] = 4. / 3. * np.pi * (bins[m + 1] ** 3 - bins[m] ** 3)
+    n1 = float(d1tot) / Vbox                                                # Number density of d1
     n2 = float(d2tot) / Vbox                                                # Number density of d2
 
     # Some arrays
@@ -170,8 +172,7 @@ def DD_to_tpcf_jk(d1, d2, d1_id, d2_id, boxsize, gridsize, minsep, maxsep, nbins
         # Sum pairs
         dd_pairs_i[s1] = dd_pairs_i[s1] + dd_pairs
         d1tot_s1 = np.size(d1, 0) - np.size(d1[d1_id[s1]], 0)
-        n1 = float(d1tot_s1) / Vbox
-        xi_i[s1] = dd_pairs_i[s1] / (n1 * n2 * Vbox * Vshell) - 1
+        xi_i[s1] = dd_pairs_i[s1] / (n1 * n2 * Vjk * Vshell) - 1
 
     # Compute meanxi_i
     for i in range(nbins):
